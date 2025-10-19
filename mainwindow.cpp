@@ -6,6 +6,8 @@
 #include <QPushButton>
 #include <QHBoxLayout>
 #include <QWidget>
+#include <QFileDialog>
+#include <QMessageBox>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -24,7 +26,7 @@ MainWindow::MainWindow(QWidget *parent)
     QWidget *btnContainer2 = new QWidget;
     QPushButton *closeBtn = new QPushButton("✕");
 
-    tabBar->addTab(new QTextEdit, "main.cpp");
+    tabBar->addTab(new QTextEdit, "main.txt");
 
     tabBar->setTabsClosable(true);
     connect(tabBar, &QTabWidget::tabCloseRequested, this, [tabBar](int index) {
@@ -120,6 +122,41 @@ MainWindow::MainWindow(QWidget *parent)
     tabBar->setCornerWidget(btnContainer2, Qt::TopRightCorner);
     connect(ui->actionNew, &QAction::triggered, this, [this,tabBar,backBtn](){
         actionAdd(tabBar,backBtn);
+    });
+
+    connect(ui->actionNew_Window, &QAction::triggered,this,[this](){
+        MainWindow *newWindow = new MainWindow;
+        newWindow->show();
+    });
+
+    connect(ui->actionOpen_File, &QAction::triggered,this, [this,tabBar](){
+        QString fileName = QFileDialog::getOpenFileName(
+            this,
+            "Open File",
+            QDir::homePath(),
+            "Text Files (*.txt);;All Files (*.*)"
+            );
+
+        if (fileName.isEmpty())
+        {
+            return;
+        }
+
+        QFile file(fileName);
+        if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+            QMessageBox::warning(this, "Error", "Cannot open file: " + file.errorString());
+            return;
+        }
+
+        QTextStream in(&file);
+        QString content = in.readAll();
+        file.close();
+
+        QTextEdit *textEdit = new QTextEdit;
+
+        tabBar->addTab(textEdit, fileName);
+
+        textEdit->setPlainText(content);
     });
 
 
