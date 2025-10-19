@@ -160,6 +160,13 @@ MainWindow::MainWindow(QWidget *parent)
     });
 
 
+    QWidget *currentTab = tabBar->currentWidget();
+    QTextEdit *currentEdit = currentTab->findChild<QTextEdit *>();
+
+    connect(currentEdit, &QTextEdit::undoAvailable, ui->actionUndo, &QAction::setEnabled);
+    connect(currentEdit, &QTextEdit::redoAvailable, ui->actionRedo, &QAction::setEnabled);
+
+
     mainLayout->addWidget(menuBar());
     mainLayout->addWidget(tabBar);
 
@@ -171,7 +178,9 @@ MainWindow::MainWindow(QWidget *parent)
 void MainWindow::actionAdd(QTabWidget *tabBar, QPushButton *btn)
 {
     tabBar->addTab(new QTextEdit, "new.cpp");
-};
+    tabBar->setCurrentIndex(tabBar->count() - 1);  // switch to new tab
+    emit tabBar->currentChanged(tabBar->currentIndex()); // force refresh connections
+}
 
 MainWindow::~MainWindow()
 {
